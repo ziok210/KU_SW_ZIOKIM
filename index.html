@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <!-- GitHub Pages 웹 환경에 맞춤화된 Content-Security-Policy 설정 (구글 폰트 도메인 허용) -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Schedule - 개인 일정 관리</title>
+  <!-- 파일들이 같은 루트에 모여있으므로 style.css 경로를 바로 참조합니다. -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme"> <!-- 기본 테마는 다크 모드 -->
+  
+  <!-- 앱 전체 컨테이너 -->
+  <div class="app-container">
+    
+    <!-- 1. 사이드바 네비게이션 -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">✏️</span>
+        <span class="brand-name">Life Schedule</span>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <button class="menu-item active" data-tab="dashboard">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          대시보드
+        </button>
+        <button class="menu-item" data-tab="todo">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          할 일 (To-Do)
+        </button>
+        <button class="menu-item" data-tab="notes">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          메모
+        </button>
+        <button class="menu-item" data-tab="diary">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          일기장
+        </button>
+        <button class="menu-item" data-tab="search">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          전체 검색
+        </button>
+      </nav>
+      
+      <!-- 테마 토글 설정 구역 -->
+      <div class="sidebar-footer">
+        <button id="theme-toggle" class="theme-btn">
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">다크 모드</span>
+        </button>
+      </div>
+    </aside>
+    
+    <!-- 2. 메인 콘텐츠 영역 -->
+    <main class="main-content">
+      
+      <!-- 2-A. 대시보드 뷰 (Dashboard) -->
+      <section id="tab-dashboard" class="tab-panel active">
+        <div class="view-header">
+          <h1>📊 대시보드</h1>
+          <p>오늘의 계획과 상태를 한눈에 확인하세요.</p>
+        </div>
+        
+        <div class="dashboard-grid">
+          <!-- 할 일 통계 카드 -->
+          <div class="stats-card">
+            <h3>오늘 해야 할 일</h3>
+            <div class="stats-value" id="today-todo-count">0</div>
+            <p class="stats-desc">아직 완료되지 않은 오늘 마감 일정</p>
+          </div>
+          
+          <!-- 완료율 통계 카드 -->
+          <div class="stats-card">
+            <h3>전체 할 일 완료율</h3>
+            <div class="progress-container">
+              <svg class="progress-ring" width="120" height="120">
+                <circle class="progress-ring__background" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+                <circle class="progress-ring__circle" stroke-width="10" fill="transparent" r="50" cx="60" cy="60"/>
+              </svg>
+              <div class="progress-text" id="todo-progress-percent">0%</div>
+            </div>
+            <p class="stats-desc" id="todo-ratio-text">0 / 0 완료됨</p>
+          </div>
+        </div>
+        
+        <!-- 대시보드 간편 요약 세션 -->
+        <div class="dashboard-summary">
+          <div class="summary-section">
+            <div class="section-title-wrapper">
+              <h3>📌 오늘 할 일 요약</h3>
+              <button class="btn-text" id="go-to-todo-tab">To-Do 관리 바로가기 &rarr;</button>
+            </div>
+            <ul class="summary-list" id="dashboard-todo-list">
+              <!-- JS로 렌더링 -->
+              <li class="empty-state">오늘 마감인 할 일이 없습니다.</li>
+            </ul>
+          </div>
+          
+          <div class="summary-section">
+            <div class="section-title-wrapper">
+              <h3>📝 최근 작성한 메모</h3>
+              <button class="btn-text" id="go-to-notes-tab">메모 바로가기 &rarr;</button>
+            </div>
+            <ul class="summary-list" id="dashboard-notes-list">
+              <!-- JS로 렌더링 -->
+              <li class="empty-state">저장된 메모가 없습니다.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2-B. 할 일 뷰 (To-Do) -->
+      <section id="tab-todo" class="tab-panel">
+        <div class="view-header">
+          <h1>📌 할 일 관리 (To-Do)</h1>
+          <p>해야 할 일을 기록하고 우선순위별로 관리하세요.</p>
+        </div>
+        
+        <div class="todo-layout">
+          <!-- 할 일 추가 폼 -->
+          <form id="todo-form" class="todo-form-panel">
+            <h3 id="todo-form-title">할 일 추가하기</h3>
+            <input type="hidden" id="todo-edit-id"> <!-- 수정 모드일 때 ID 저장 -->
+            
+            <div class="form-group">
+              <label for="todo-input">할 일 제목</label>
+              <input type="text" id="todo-input" placeholder="무엇을 해야 하나요?" required>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="todo-date">마감일</label>
+                <input type="date" id="todo-date" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="todo-priority">우선순위</label>
+                <select id="todo-priority">
+                  <option value="high">상 (High)</option>
+                  <option value="medium" selected>중 (Medium)</option>
+                  <option value="low">하 (Low)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="todo-save-btn">추가하기</button>
+              <button type="button" class="btn btn-secondary hidden" id="todo-cancel-btn">취소</button>
+            </div>
+          </form>
+          
+          <!-- 할 일 목록 영역 -->
+          <div class="todo-list-panel">
+            <div class="todo-filters">
+              <button class="filter-btn active" data-filter="all">전체</button>
+              <button class="filter-btn" data-filter="active">진행 중</button>
+              <button class="filter-btn" data-filter="completed">완료됨</button>
+            </div>
+            
+            <div class="todo-list-wrapper">
+              <ul id="todo-list" class="item-list">
+                <!-- JS로 할 일 렌더링 -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2-C. 메모 뷰 (Notes) -->
+      <section id="tab-notes" class="tab-panel">
+        <div class="view-header">
+          <h1>📓 메모장</h1>
+          <p>생각나는 아이디어나 필요한 정보를 자유롭게 적어두세요.</p>
+        </div>
+        
+        <div class="notes-layout">
+          <!-- 왼쪽: 메모 리스트 -->
+          <div class="notes-sidebar">
+            <button id="new-note-btn" class="btn btn-primary w-100">+ 새 메모 작성</button>
+            <div class="notes-list-wrapper">
+              <ul id="notes-list" class="notes-menu-list">
+                <!-- JS로 메모 항목들 렌더링 -->
+              </ul>
+            </div>
+          </div>
+          
+          <!-- 오른쪽: 메모 에디터 -->
+          <div class="notes-editor">
+            <div id="note-editor-empty" class="editor-empty-state">
+              <span class="empty-icon">📝</span>
+              <p>메모를 선택하거나 새로 작성해보세요.</p>
+            </div>
+            
+            <div id="note-editor-form" class="editor-container hidden">
+              <input type="hidden" id="note-edit-id"> <!-- 현재 편집 중인 메모 ID -->
+              <div class="editor-header">
+                <input type="text" id="note-title-input" placeholder="메모 제목" required>
+                <div class="editor-actions">
+                  <button id="note-save-btn" class="btn btn-primary">저장</button>
+                  <button id="note-delete-btn" class="btn btn-danger">삭제</button>
+                </div>
+              </div>
+              <div class="editor-body">
+                <textarea id="note-content-input" placeholder="내용을 입력하세요..." required></textarea>
+              </div>
+              <div class="editor-footer">
+                <span id="note-saved-time">수정되지 않음</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2-D. 일기장 뷰 (Diary) -->
+      <section id="tab-diary" class="tab-panel">
+        <div class="view-header">
+          <h1>📔 일기장</h1>
+          <p>하루의 기록을 날짜별로 남겨보세요. 달력에 일기가 작성된 날은 마킹이 표시됩니다.</p>
+        </div>
+        
+        <div class="diary-layout">
+          <!-- 왼쪽: 달력(Calendar) -->
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <button id="prev-month-btn" class="btn-icon">&lt;</button>
+              <h2 id="calendar-month-year">2026년 6월</h2>
+              <button id="next-month-btn" class="btn-icon">&gt;</button>
+            </div>
+            
+            <!-- 요일 행 -->
+            <div class="calendar-weekdays">
+              <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+            
+            <!-- 날짜 그리드 -->
+            <div id="calendar-days" class="calendar-days">
+              <!-- JS로 렌더링 -->
+            </div>
+          </div>
+          
+          <!-- 오른쪽: 일기 에디터 -->
+          <div class="diary-editor-panel">
+            <div class="diary-editor-header">
+              <h3 id="selected-date-title">날짜를 선택해 주세요</h3>
+            </div>
+            
+            <div id="diary-form-container" class="diary-form-container hidden">
+              <div class="form-group">
+                <textarea id="diary-content" placeholder="오늘 하루는 어땠나요? 당신의 특별한 기록을 남겨보세요..." required></textarea>
+              </div>
+              <div class="diary-actions">
+                <button id="diary-save-btn" class="btn btn-primary">일기 저장</button>
+                <button id="diary-delete-btn" class="btn btn-danger hidden">일기 삭제</button>
+              </div>
+            </div>
+            
+            <div id="diary-empty-message" class="diary-empty-message">
+              <p>📅 달력에서 날짜를 선택하시면 해당 날짜의 일기를 읽고 작성할 수 있습니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2-E. 전체 검색 뷰 (Search) -->
+      <section id="tab-search" class="tab-panel">
+        <div class="view-header">
+          <h1>🔍 통합 검색</h1>
+          <p>할 일, 메모, 일기에 포함된 키워드를 한 번에 검색합니다.</p>
+        </div>
+        
+        <div class="search-container">
+          <div class="search-bar">
+            <input type="text" id="search-input" placeholder="검색어를 입력하세요 (예: 회의, 일기, 공부 등)...">
+            <button id="search-btn" class="btn btn-primary">검색</button>
+          </div>
+          
+          <div id="search-results-container" class="search-results-wrapper">
+            <!-- 검색 결과 없음 기본 상태 -->
+            <div class="search-empty-state" id="search-empty">
+              <span>🔍</span>
+              <p>검색어를 입력하고 검색 버튼을 눌러주세요.</p>
+            </div>
+            
+            <!-- 검색 카테고리별 결과 영역 -->
+            <div id="search-results-content" class="search-results-content hidden">
+              
+              <!-- To-Do 결과 -->
+              <div class="search-section">
+                <h4>📌 할 일 (To-Do) <span class="result-count" id="count-todo">0</span></h4>
+                <div class="search-list" id="search-todo-list">
+                  <!-- 할 일 검색 결과 카드 렌더링 -->
+                </div>
+              </div>
+              
+              <!-- 메모 결과 -->
+              <div class="search-section">
+                <h4>📓 메모장 <span class="result-count" id="count-notes">0</span></h4>
+                <div class="search-list" id="search-notes-list">
+                  <!-- 메모 검색 결과 카드 렌더링 -->
+                </div>
+              </div>
+              
+              <!-- 일기 결과 -->
+              <div class="search-section">
+                <h4>📔 일기장 <span class="result-count" id="count-diary">0</span></h4>
+                <div class="search-list" id="search-diary-list">
+                  <!-- 일기 검색 결과 카드 렌더링 -->
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </section>
+      
+    </main>
+  </div>
+  
+  <!-- 렌더러 로직 스크립트 연결 (같은 폴더에 위치하므로 파일명으로 직접 가리킵니다) -->
+  <script src="renderer.js"></script>
+</body>
+</html>
