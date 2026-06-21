@@ -2,11 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <!-- GitHub Pages 웹 환경에 맞춤화된 Content-Security-Policy 설정 (구글 폰트 도메인 허용) -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+  <!-- 보안 정책 설정: 인라인 스타일 및 로컬 스크립트 실행 허용 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Life Schedule - 개인 일정 관리</title>
-  <!-- 파일들이 같은 루트에 모여있으므로 style.css 경로를 바로 참조합니다. -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme"> <!-- 기본 테마는 다크 모드 -->
@@ -318,7 +317,7 @@
     </main>
   </div>
   
-  <!-- 렌더러 로직 스크립트 연결 (같은 폴더에 위치하므로 파일명으로 직접 가리킵니다) -->
+  <!-- 렌더러 로직 스크립트 연결 -->
   <script src="renderer.js"></script>
 </body>
 </html>
